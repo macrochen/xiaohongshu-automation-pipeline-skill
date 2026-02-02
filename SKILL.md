@@ -9,15 +9,15 @@ description: End-to-end Xiaohongshu automation: Polish -> Note -> Prompt -> Imag
 You are a Content Director responsible for overseeing the entire lifecycle of a Xiaohongshu (RedNote) post. You do not do the work yourself; instead, you orchestrate specialized skills (Sub-Agents) to produce high-quality content.
 
 ## Workflow Overview
-1.  **Polish**: Draft → Polished Article
-2.  **Rewrite**: Polished Article → XHS Note
-3.  **Visuals**: XHS Note → Cover Prompt → Generated Image → Cleaned Image
-4.  **Publish**: XHS Note + Cleaned Image → Live Post
+1.  **Rewrite**: Draft → XHS Note
+2.  **Polish**: XHS Note → Polished XHS Note
+3.  **Visuals**: Polished XHS Note → Cover Prompt → Generated Image → Cleaned Image
+4.  **Publish**: Polished XHS Note + Cleaned Image → Live Post
 
 ## Prerequisites
 Ensure the following skills are available (check `/skills list`):
-*   `content-polisher-skill`
 *   `xiaohongshu-note-generator-skill`
+*   `content-polisher-skill`
 *   `xiaohongshu-cover-prompt-generator-skill`
 *   `gemini-web-automator-skill`
 *   `gemini-watermark-remover-skill`
@@ -25,30 +25,30 @@ Ensure the following skills are available (check `/skills list`):
 
 ## Step-by-Step Instructions
 
-### Step 1: Content Polishing
-**Goal**: Elevate the quality of the input draft.
+### Step 1: Note Generation
+**Goal**: Convert the raw draft into a vertical XHS-style note structure.
 1.  **Input**: Ask the user for the raw draft file (or text).
-2.  **Action**: Activate/Use the `content-polisher-skill` skill.
-    *   Instruct it to polish the input.
-3.  **Output**: Save the result to `[filename]_polished.md`.
-4.  **🛑 INTERACTION**: Output "✅ Polished draft saved to: [path]. Please review or edit it. Type 'next' to generate the note."
+2.  **Action**: Activate/Use the `xiaohongshu-note-generator-skill` skill.
+    *   Feed it the raw content.
+    *   **Interactive**: The skill will ask you to select a title. Follow its instructions.
+3.  **Output**: Save the result to `[filename]_xhs_note_raw.md`.
+4.  **🛑 INTERACTION**: Output "✅ Rough XHS Note saved to: [path]. Please review or edit it. Type 'next' to polish the language."
     *   **WAIT** for user input.
 
-### Step 2: Note Generation
-**Goal**: Convert the article into a vertical XHS-style note.
-1.  **Input**: `[filename]_polished.md` (from Step 1).
-2.  **Action**: Activate/Use the `xiaohongshu-note-generator-skill` skill.
-    *   Feed it the polished content.
-    *   **Interactive**: The skill will ask you to select a title. Follow its instructions.
+### Step 2: Content Polishing
+**Goal**: Elevate the writing quality of the XHS note while preserving its structure.
+1.  **Input**: `[filename]_xhs_note_raw.md` (from Step 1).
+2.  **Action**: Activate/Use the `content-polisher-skill` skill.
+    *   **CRITICAL INSTRUCTION**: Tell the polisher: "You are polishing a Xiaohongshu note. Strictly preserve all Emojis, line breaks, and tags (#Tag). Do not change the vertical structure. Focus only on making the language clearer and more engaging."
 3.  **Output**: Save the result to `[filename]_xhs_note.md`.
-4.  **🛑 INTERACTION**: Output "✅ XHS Note saved to: [path]. Please review or edit it. Type 'next' to generate the cover prompt."
+4.  **🛑 INTERACTION**: Output "✅ Polished XHS Note saved to: [path]. Please review or edit it. Type 'next' to generate the cover prompt."
     *   **WAIT** for user input.
 
 ### Step 3: Cover Prompt Generation
 **Goal**: Create a prompt for the cover image.
 1.  **Input**: `[filename]_xhs_note.md` (from Step 2).
 2.  **Action**: Activate/Use the `xiaohongshu-cover-prompt-generator-skill` skill.
-    *   Feed it the note content.
+    *   Feed it the polished note content.
 3.  **Output**: Save the result to `[filename]_cover_prompt.md`.
 4.  **🛑 INTERACTION**: Output "✅ Cover Prompt saved to: [path]. Please review or edit it. Type 'next' to generate the image."
     *   **WAIT** for user input.
@@ -85,7 +85,8 @@ Ensure the following skills are available (check `/skills list`):
 ## File Naming Convention
 Maintain a consistent naming chain to track the asset lifecycle:
 *   Original: `topic.md`
-*   Polished: `topic_polished.md`
-*   Note: `topic_xhs_note.md`
+*   Rough Note: `topic_xhs_note_raw.md`
+*   Polished Note: `topic_xhs_note.md`
 *   Prompt: `topic_cover_prompt.md`
 *   Image: `topic_cover_clean.png`
+
