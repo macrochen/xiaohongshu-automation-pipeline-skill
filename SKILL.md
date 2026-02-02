@@ -39,6 +39,7 @@ Ensure the following skills are available (check `/skills list`):
 1.  **Input**: `[filename]_polished.md` (from Step 1).
 2.  **Action**: Activate/Use the `xiaohongshu-note-generator-skill` skill.
     *   Feed it the polished content.
+    *   **Interactive**: The skill will ask you to select a title. Follow its instructions.
 3.  **Output**: Save the result to `[filename]_xhs_note.md`.
 4.  **🛑 INTERACTION**: Output "✅ XHS Note saved to: [path]. Please review or edit it. Type 'next' to generate the cover prompt."
     *   **WAIT** for user input.
