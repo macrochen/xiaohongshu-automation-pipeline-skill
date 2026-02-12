@@ -79,7 +79,10 @@ Ensure the following skills are available (check `/skills list`):
     *   **WAIT** for user input.
 3.  **Action**: Activate `xiaohongshu-publisher-skill`.
     *   Command: `python .gemini/skills/xiaohongshu-publisher-skill/publish.py --file "..." --images "..."`
-4.  **Final Step**: After success, extract the `Edit URL` from the output and use `run_shell_command` with the system's open command (e.g., `open "<URL>"` on macOS) to open it for the user.
+4.  **Final Step**: After success, extract the `Edit URL` from the output.
+    *   **🛑 INTERACTION**: Ask the user: "Publish successful! Would you like to open the edit page to check or adjust? (y/n)"
+    *   If **'y'**: Use `run_shell_command` with the system's open command (e.g., `open "<URL>"` on macOS).
+    *   If **'n'**: End the process.
 5.  **Verification**: Confirm success message.
 
 ## File Naming Convention
