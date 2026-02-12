@@ -59,14 +59,16 @@ Ensure the following skills are available (check `/skills list`):
 2.  **Action**: Activate/Use the `gemini-web-automator-skill` skill.
     *   Pass the prompt file path.
     *   **Wait** for the user to confirm they have downloaded the image.
-3.  **Interaction**: Ask the user: "Please provide the full path to the downloaded image (e.g., ~/Downloads/image_123.png)."
+3.  **Interaction**: Ask the user: "Please download the image. Type 'next' to auto-detect the latest image in ~/Downloads, or provide a specific path."
 
 ### Step 5: Watermark Removal
 **Goal**: Clean the generated image.
-1.  **Input**: User-provided image path (from Step 4).
-2.  **Action**: Activate/Use the `gemini-watermark-remover-skill` skill.
-    *   Run the remover on the image.
-3.  **Output**: Record the path of the cleaned image (usually `..._clean.png`).
+1.  **Action**:
+    *   **Check Input**: Did the user provide a path?
+    *   **Auto-Detect**: If NO path provided (user said 'next'/'continue'), use `ls -t ~/Downloads/*.{png,jpg,jpeg,webp} | head -n 1` to find the newest image.
+    *   **Output**: "Using image: [path]"
+    *   Activate `gemini-watermark-remover-skill` on the selected image.
+2.  **Output**: Record the path of the cleaned image (usually `..._clean.png`).
 
 ### Step 6: Publishing
 **Goal**: Post to Xiaohongshu.
