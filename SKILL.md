@@ -22,6 +22,7 @@ Ensure the following skills are available (check `/skills list`):
 *   `gemini-web-automator-skill`
 *   `gemini-watermark-remover-skill`
 *   `xiaohongshu-publisher-skill` (requires `.env` with `XHS_COOKIE`)
+*   `obsidian-archiver-skill`
 
 ## File Management Convention
 All project assets must be stored in a dedicated folder: `content/xiaohongshu/[topic-name]/`
@@ -97,6 +98,13 @@ All project assets must be stored in a dedicated folder: `content/xiaohongshu/[t
 4.  **Final Step**: After success, extract the `Edit URL` from the output.
     *   **🛑 INTERACTION**: Ask the user: "Publish successful! Would you like to open the edit page to check or adjust? (y/n)"
     *   If **'y'**: Use `run_shell_command` with the system's open command (e.g., `open "<URL>"` on macOS).
-    *   If **'n'**: End the process.
+    *   If **'n'**: Proceed to Step 7.
 5.  **Verification**: Confirm success message.
+
+### Step 7: Archive to Obsidian
+**Goal**: Save the detailed polished version to the long-term knowledge base.
+1.  **Input**: `content/xiaohongshu/[topic-name]/01-polished.md`.
+2.  **Action**: Activate `obsidian-archiver-skill`.
+    *   Command: `python .gemini/skills/obsidian-archiver-skill/scripts/archive.py --title "placeholder" --type "Xiaohongshu" --content_file "content/xiaohongshu/[topic-name]/01-polished.md"`
+3.  **Output**: Confirm the file is saved in `Obsidian-Knowledge-Base/`.
 
