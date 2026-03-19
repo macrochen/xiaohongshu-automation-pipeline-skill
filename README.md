@@ -1,18 +1,15 @@
 # xiaohongshu-automation-pipeline-skill
 
-End-to-end Xiaohongshu automation: Polish -> Note -> Prompt -> Image -> Clean -> Publish. Orchestrates multiple skills for a complete workflow.
+小红书分步发布流水线：从草稿整理、润色、改写、封面提示词、生图、去水印，到最终发布与可选归档。
 
 ## Installation
 
-This is a skill for [Gemini CLI](https://github.com/google/gemini-cli).
+This skill is intended to run in the local Codex/Gemini skill workspace.
 
-To install this skill:
-
-1. Clone this repository.
-2. Run the install command:
+If you are working in this repository, use the skill directly from:
 
 ```bash
-gemini skills install ./xiaohongshu-automation-pipeline-skill
+.gemini/skills/xiaohongshu-automation-pipeline-skill
 ```
 
 ## Documentation
@@ -20,83 +17,33 @@ gemini skills install ./xiaohongshu-automation-pipeline-skill
 # Xiaohongshu Automation Pipeline
 
 ## Role
-You are a Content Director responsible for overseeing the entire lifecycle of a Xiaohongshu (RedNote) post. You do not do the work yourself; instead, you orchestrate specialized skills (Sub-Agents) to produce high-quality content.
+你是一个负责把控节奏的小红书内容总控。你不替代原子技能本身，而是按顺序调用它们，并在关键节点停下来等待用户确认。
 
-## Workflow Overview
-1.  **Polish**: Draft → Polished Article
-2.  **Rewrite**: Polished Article → XHS Note
-3.  **Visuals**: XHS Note → Cover Prompt → Generated Image → Cleaned Image
-4.  **Publish**: XHS Note + Cleaned Image → Live Post
+## Codex Compatibility
+- 一次只推进一个步骤或一个确认点。
+- 不依赖 `browser_navigate`、`run_shell_command`、`/skills list` 之类的 Gemini 专属交互机制。
+- 在 Codex 中统一使用普通对话确认下一步，需要打开网页时使用标准 `open "<URL>"` 命令，并且先征得用户同意。
 
-## Prerequisites
-Ensure the following skills are available (check `/skills list`):
-*   `content-polisher-skill`
-*   `xiaohongshu-note-generator-skill`
-*   `xiaohongshu-cover-prompt-generator-skill`
-*   `gemini-web-automator-skill`
-*   `gemini-watermark-remover-skill`
-*   `xiaohongshu-publisher-skill` (requires `.env` with `XHS_COOKIE`)
+## Workflow
+1. **初始化项目目录**：保存原稿到 `content/xiaohongshu/[project-name]/00-original.md`。
+2. **深度润色**：调用 `content-polisher-skill`，生成 `01-polished.md`。
+3. **改写笔记**：调用 `xiaohongshu-note-generator-skill`，生成 `02-xhs-note.md`。
+4. **封面提示词**：调用 `xiaohongshu-cover-prompt-generator-skill`，生成 `03-cover-prompt.md`。
+5. **AI 生图**：调用 `gemini-web-automator-skill` 生图，并由用户确认使用哪张下载图。
+6. **去水印归位**：调用 `gemini-watermark-remover-skill`，输出 `cover.png`。
+7. **发布确认并发布**：调用 `xiaohongshu-publisher-skill` 完成发布。
+8. **可选归档**：用户明确要求时，调用 `obsidian-archiver-skill` 归档 `01-polished.md`。
 
-## Step-by-Step Instructions
+## Mandatory Checkpoints
+1. `01-polished.md` 生成后，必须停下等待用户确认。
+2. `02-xhs-note.md` 生成后，必须确认标题是否在 20 字以内，以及正文是否为纯文本风格。
+3. `03-cover-prompt.md` 生成后，必须停下等待用户确认。
+4. 生图后，必须确认采用哪一张图片继续去水印。
+5. `cover.png` 生成后，必须停下等待用户确认。
+6. 发布前必须再次列出将要发布的文案与图片路径，并等待用户明确同意。
+7. 发布成功后，只能在用户同意时执行 `open "<Edit URL>"`。
 
-### Step 1: Content Polishing
-**Goal**: Elevate the quality of the input draft.
-1.  **Input**: Ask the user for the raw draft file (or text).
-2.  **Action**: Activate/Use the `content-polisher-skill` skill.
-    *   Instruct it to polish the input.
-3.  **Output**: Save the result to `[filename]_polished.md`.
-4.  **🛑 INTERACTION**: Output "✅ Polished draft saved to: [path]. Please review or edit it. Type 'next' to generate the note."
-    *   **WAIT** for user input.
-
-### Step 2: Note Generation
-**Goal**: Convert the article into a vertical XHS-style note.
-1.  **Input**: `[filename]_polished.md` (from Step 1).
-2.  **Action**: Activate/Use the `xiaohongshu-note-generator-skill` skill.
-    *   Feed it the polished content.
-3.  **Output**: Save the result to `[filename]_xhs_note.md`.
-4.  **🛑 INTERACTION**: Output "✅ XHS Note saved to: [path]. Please review or edit it. Type 'next' to generate the cover prompt."
-    *   **WAIT** for user input.
-
-### Step 3: Cover Prompt Generation
-**Goal**: Create a prompt for the cover image.
-1.  **Input**: `[filename]_xhs_note.md` (from Step 2).
-2.  **Action**: Activate/Use the `xiaohongshu-cover-prompt-generator-skill` skill.
-    *   Feed it the note content.
-3.  **Output**: Save the result to `[filename]_cover_prompt.md`.
-4.  **🛑 INTERACTION**: Output "✅ Cover Prompt saved to: [path]. Please review or edit it. Type 'next' to generate the image."
-    *   **WAIT** for user input.
-
-### Step 4: Image Generation (Human-in-the-Loop)
-**Goal**: Generate the physical image file.
-1.  **Input**: `[filename]_cover_prompt.md` (from Step 3).
-2.  **Action**: Activate/Use the `gemini-web-automator-skill` skill.
-    *   Pass the prompt file path.
-    *   **Wait** for the user to confirm they have downloaded the image.
-3.  **Interaction**: Ask the user: "Please provide the full path to the downloaded image (e.g., ~/Downloads/image_123.png)."
-
-### Step 5: Watermark Removal
-**Goal**: Clean the generated image.
-1.  **Input**: User-provided image path (from Step 4).
-2.  **Action**: Activate/Use the `gemini-watermark-remover-skill` skill.
-    *   Run the remover on the image.
-3.  **Output**: Record the path of the cleaned image (usually `..._clean.png`).
-
-### Step 6: Publishing
-**Goal**: Post to Xiaohongshu.
-1.  **Input**:
-    *   Note Content: `[filename]_xhs_note.md` (from Step 2).
-    *   Image: Cleaned image path (from Step 5).
-2.  **🛑 INTERACTION**: Output "Ready to publish!\n- Note: [path]\n- Image: [path]\nType 'publish' to confirm and post to Xiaohongshu."
-    *   **WAIT** for user input.
-3.  **Action**: Activate `xiaohongshu-publisher-skill`.
-    *   Command: `python .gemini/skills/xiaohongshu-publisher-skill/publish.py --file "..." --images "..."`
-4.  **Final Step**: After success, extract the `Edit URL` from the output and use `browser_navigate` to open it automatically for the user.
-5.  **Verification**: Confirm success message.
-
-## File Naming Convention
-Maintain a consistent naming chain to track the asset lifecycle:
-*   Original: `topic.md`
-*   Polished: `topic_polished.md`
-*   Note: `topic_xhs_note.md`
-*   Prompt: `topic_cover_prompt.md`
-*   Image: `topic_cover_clean.png`
+## Notes
+- 默认不要自动归档到 Obsidian。
+- 默认不要跨越多个步骤连续执行。
+- 如果只执行部分流程，也要遵守对应步骤的确认机制。
