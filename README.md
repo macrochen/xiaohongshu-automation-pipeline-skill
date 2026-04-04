@@ -25,8 +25,8 @@ If you are working in this repository, use the skill directly from:
 - 在 Codex 中统一使用普通对话确认下一步，需要打开网页时使用标准 `open "<URL>"` 命令，并且先征得用户同意。
 
 ## Workflow
-1. **初始化项目目录**：保存原稿到 `content/xiaohongshu/[project-name]/00-original.md`。
-2. **深度润色**：调用 `content-polisher-skill`，生成 `01-polished.md`。
+1. **初始化项目目录**：保存原稿到 `outputs/xiaohongshu-automation-pipeline-skill/yyyymmdd-[project-name]/00-original.md`。
+2. **深度润色**：调用 `remove-ai-flavor-skill`，生成 `01-polished.md`。
 3. **改写笔记**：调用 `xiaohongshu-note-generator-skill`，生成 `02-xhs-note.md`。
 4. **封面提示词**：调用 `xiaohongshu-cover-prompt-generator-skill`，生成 `03-cover-prompt.md`。
 5. **AI 生图**：调用 `gemini-web-automator-skill` 生图，并由用户确认使用哪张下载图。
