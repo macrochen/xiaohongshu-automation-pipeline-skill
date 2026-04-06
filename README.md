@@ -9,7 +9,7 @@ This skill is intended to run in the local Codex/Gemini skill workspace.
 If you are working in this repository, use the skill directly from:
 
 ```bash
-.gemini/skills/xiaohongshu-automation-pipeline-skill
+~/.agents/skills/xiaohongshu-automation-pipeline-skill
 ```
 
 ## Documentation
